@@ -21,7 +21,7 @@ from talib import abstract
 style.use('ggplot')
 
 def ML_training(ticker):
-    quandl.ApiConfig.api_key = "MYSsxrxJt_P37mBkd5Xy"
+    
 
     df = quandl.get('WIKI/'+ticker)
 
