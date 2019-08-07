@@ -33,7 +33,7 @@ class Stock_price_prediction():
         pass
         
         
-    def ML_training(self,ticker,forecast_out=15):
+    def ML_training(self,ticker,forecast_out=5):
         self.predict_length = forecast_out #提供查詢
         self.ticker = ticker
         self.df_origin = pdr.DataReader(self.ticker,'yahoo')
@@ -41,13 +41,14 @@ class Stock_price_prediction():
         
         #用talib一定要rename一下key才會對應的到
         self.df_origin.rename(columns = {'Open':'open',
-                                  'High':'high',
-                                  'Low':'low',
-                                  'Close':'close'}, inplace = True)
+                                         'High':'high',
+                                         'Low':'low',
+                                         'Close':'close'}, inplace = True)
         self.df_origin.drop(columns=['Adj Close'],inplace=True)
         self.df_origin['HL_PCT'] = (self.df_origin['high']-self.df_origin['low'])/self.df_origin['close'] * 100
         self.df_origin['PCT_change'] = (self.df_origin['close']-self.df_origin['open'])/self.df_origin['open'] * 100
-        
+        self.df_origin['5_ma'] = self.df_origin['close'].rolling(window=5).mean()
+        self.df_origin.dropna(inplace=True)
         self.df = self.df_origin[:-forecast_out].copy()    #避免pandas一直跳警告
         
         self.predict_date_start = datetime.strptime(str(self.df.iloc[-self.predict_length].name), "%Y-%m-%d %H:%M:%S")
@@ -65,7 +66,7 @@ class Stock_price_prediction():
         
     def prediction_test(self,show_days=20):
         
-        self.predict_df = self.df[-self.predict_length * 2:]
+        self.predict_df = self.df[-self.predict_length * 2:].copy()
         X = np.array(self.predict_df[:-self.predict_length])
         
         #X = preprocessing.scale(X)
@@ -80,7 +81,7 @@ class Stock_price_prediction():
         #畫圖
         self.df['close'][-show_days:].plot()
         self.df['prediction'][-show_days:].plot()
-        plt.legend(loc=4)
+        plt.legend()
         plt.xlabel('Date')
         plt.ylabel('Price')
         plt.title('{}'.format(self.ticker))
@@ -96,9 +97,9 @@ class Stock_price_prediction():
 
 if __name__=='__main__':
     s = Stock_price_prediction()
-    s.ML_training('^TWII',forecast_out=10)
-    #s.prediction()
-    s.predict_future()
+    s.ML_training('^TWII',forecast_out=5)
+    s.prediction_test()
+    #s.predict_future()
     
 
 
